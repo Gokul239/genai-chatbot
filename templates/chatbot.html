@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beautiful Messaging Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    footer {
+      background-color: #333;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #message-form {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    #message-input {
+      flex-grow: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #send-button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 10px;
+    }
+
+    #send-button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    #messages {
+      margin-top: 20px;
+      max-height: 300px; /* Adjust the height as needed */
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .message-sender {
+      font-weight: bold;
+    }
+
+    .sent {
+      background-color: #d4f4d4;
+    }
+
+    .received {
+      background-color: #f4d4d4;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Beautiful Messaging Page</h1>
+  </header>
+
+  <main>
+    <section id="message-form">
+      <input type="text" id="message-input" placeholder="Enter your message">
+      <button id="send-button">Send</button>
+    </section>
+
+    <section id="messages"></section>
+  </main>
+
+  <footer>
+    &copy; 2023 Your Website
+  </footer>
+
+  <script>
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const messagesSection = document.getElementById('messages');
+
+    // Function to append messages to the message area
+    function appendMessage(sender, message, type) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', type);
+      messageElement.innerHTML = `<span class="message-sender">${sender}:</span> ${message}`;
+      messagesSection.appendChild(messageElement);
+
+      // Scroll to the bottom of the messages section
+      messagesSection.scrollTop = messagesSection.scrollHeight;
+    }
+
+    function setButtonState(isEnabled) {
+      sendButton.disabled = !isEnabled;
+    }
+
+    sendButton.addEventListener('click', () => {
+      const messageText = messageInput.value;
+      if (messageText) {
+        // Disable the send button while waiting for a response
+        setButtonState(false);
+
+        // Display the sent message immediately
+        appendMessage('You', messageText, 'sent');
+
+        // Send the message to the backend
+        fetch('/send-message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: messageText })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Append bot response when received
+            appendMessage('Bot', data.response, 'received');
+          } else {
+            console.error('Error sending message:', data.error);
+          }
+          // Enable the send button after receiving the response
+          setButtonState(true);
+        })
+        .catch(error => {
+          console.error('Error sending message:', error);
+          // Enable the send button even if an error occurs
+          setButtonState(true);
+        });
+
+        // Clear the input after sending
+        messageInput.value = '';
+      }
+    });
+
+    // Initial state of the send button
+    setButtonState(true);
+  </script>
+</body>
+</html>

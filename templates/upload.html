@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Uploader with Textbox Validation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            width: 400px; /* Set a width for the container */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            width: 100%; /* Make inputs take full width */
+            margin-bottom: 10px;
+            padding: 8px; /* Add padding for better UX */
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%; /* Make button take full width */
+        }
+
+        #upload-status {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Uploader</h1>
+        <form id="upload-form" enctype="multipart/form-data" action="/upload" method="POST">
+            <label for="pdf-input">Select PDF:</label>
+            <input type="file" id="pdf-input" name="pdf-input" accept=".pdf" required>
+            <label for="text-input">Enter Text:</label>
+            <input type="text" id="text-input" name="text-input" placeholder="Enter text here" required>
+            <button type="submit" id="submit-button">Submit</button>
+        </form>
+        <div id="upload-status"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const uploadStatus = document.getElementById('upload-status');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent the default form submission behavior
+
+            // Display uploading status
+            uploadStatus.textContent = 'Uploading...';
+            uploadStatus.style.color = 'green';
+
+            // Create a FormData object to send the file and text data
+            const formData = new FormData(form); // Using the form directly
+
+            // Send the data to the server
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    uploadStatus.textContent = `File ${data.filename} uploaded successfully!`;
+                    uploadStatus.style.color = 'green';
+                } else {
+                    uploadStatus.textContent = data.error;
+                    uploadStatus.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                uploadStatus.textContent = 'Error occurred while uploading.';
+                uploadStatus.style.color = 'red';
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
